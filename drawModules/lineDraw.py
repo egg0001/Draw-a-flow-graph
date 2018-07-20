@@ -32,6 +32,7 @@ class Lines():
       hline = dwg.add(dwg.g(id='routeH', stroke='black'))
       arrow = dwg.add(dwg.g(id='arrow', stroke='black'))
       outputLineList = []
+      lastLineList = []
       if self.outObject.relateCollect.get('down'):
          for pDt in self.outObject.relateCollect['down']:
             pD = pDt[0]
@@ -48,6 +49,7 @@ class Lines():
                   #                    end=(pD.inPoint[0]*cm, pD.inPoint[1]*cm)))
                   lineList=[((pD.outPointD[0], self.outObject.outPointD[1]), pD.inPoint)]
                   endPoint = (pD.inPoint[0], pD.inPoint[1])
+                  
                try:
                  self.text=pDt[1]
                  self.textLocation = (endPoint[0], (endPoint[1]+self.outObject.outPointD[1])*1.03/2)
@@ -55,7 +57,7 @@ class Lines():
                except:
                   self.text=''
                   self.textLocation=()                
-
+               lastLineList.append([lineList[0], lineList[1]])
                outputLineList.extend(lineList)
             elif (self.outObject.groupNumber <= pD.groupNumber):# This is right path
                if (self.outObject.groupNumber == pD.groupNumber):
@@ -85,6 +87,7 @@ class Lines():
                              [(pD.inPoint[0],  out3RandomV),
                             (pD.inPoint[0], pD.inPoint[1])]]
                outputLineList.extend(linesList)
+               lastLineList.append([(pD.inPoint[0],  out3RandomV),(pD.inPoint[0], pD.inPoint[1])])
             #    polyLines.add(dwg.polyline(points=linesList))
                endPoint=(pD.inPoint[0], pD.inPoint[1])
                try:
@@ -115,6 +118,7 @@ class Lines():
                              [(pD.inPoint[0],  out3RandomV),
                             (pD.inPoint[0], pD.inPoint[1])]]
                outputLineList.extend(linesList)
+               lastLineList.append([(pD.inPoint[0],  out3RandomV),(pD.inPoint[0], pD.inPoint[1])])
             #    polyLines.add(dwg.polyline(points=linesList))
                endPoint=(pD.inPoint[0], pD.inPoint[1])
                try:
@@ -150,6 +154,7 @@ class Lines():
                        [(pD.inPoint[0],  out3RandomV),
                        (pD.inPoint[0], pD.inPoint[1])]]
             outputLineList.extend(lineList)
+            lastLineList.append([(pD.inPoint[0],  out3RandomV),(pD.inPoint[0], pD.inPoint[1])])
             # polyLines.add(dwg.polyline(points=lineList))
             try:
                self.text=text=pDt[1]
@@ -182,7 +187,8 @@ class Lines():
 
                        [(pD.inPoint[0],  out3RandomV),
                        (pD.inPoint[0], pD.inPoint[1])]]
-            outputLineList.extend(linesList)
+            outputLineList.extend(lineList)
+            lastLineList.append([(pD.inPoint[0],  out3RandomV),(pD.inPoint[0], pD.inPoint[1])])
             # polyLines.add(dwg.polyline(points=lineList))
             try:
                self.text = pDt[1]
@@ -197,6 +203,6 @@ class Lines():
                          (pD.inPoint[0]*cm, pD.inPoint[1]*cm)]
             arrow=dwg.polygon(points=arrowList, stroke='black', stroke_width=1)
             shapes.add(arrow)   
-      return outputLineList
+      return {'outputLineList': outputLineList, 'lastLineList': lastLineList}  #Line result
 
 

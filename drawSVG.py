@@ -26,8 +26,9 @@ def drawOverlapLines(overlapPoint, dwg, hlines, vlines, cm=config.multiConstant)
                           end=((overlapPoint[0]+0.1)*cm, (overlapPoint[1])*cm)))                          
 
 class lineEvaluation():
-   def __init__(self, pointList):
+   def __init__(self, pointList, lastLineList):
       self.pointList=pointList
+      self.lastLineList = lastLineList
       self.overlapList =[]
       self.overlapPoint = []
       self.vertical = []
@@ -36,12 +37,15 @@ class lineEvaluation():
       self.overlapY = False
 
    def evaluateOverlap(self):
-
+#       print (self.lastLineList)
+      self.lastLineList.sort()
+#       print (self.lastLineList)
       vertical = []
       horizontal = []
       overlapList = [] # overlapList = [[(p1),(p2)], [(p3), (p4)].....]
       overpalLineList=[]
       for pL in self.pointList:
+         pL.sort()
          if pL[0][0] == pL[1][0]:
             vertical.append(pL)
          else:
@@ -53,7 +57,6 @@ class lineEvaluation():
             v.sort()
             if (h[0][1]<v[1][1]) and (h[0][1]>v[0][1]) and (h[0][0]<v[0][0]) and (h[1][0]>v[0][0]):
                mayOverlapPointList.append((v[0][0],h[0][1]))  # [(p1), (p2),(p3).....]
-
          if mayOverlapPointList:
         #     print (mayOverlapPointList)
             self.overlapPoint.extend(mayOverlapPointList)
@@ -79,22 +82,38 @@ class lineEvaluation():
                else:
                   pass
             overpalLineList.append(h)
-      for v in vertical:
-         currentLine = v
-         vertical.remove(v)
-         for others in vertical:
-            currentLine.sort()
-            others.sort()
-            if others[0][0] == currentLine[0][0] and currentLine[1][1]>others[0][1]:
-               self.overlapX = True
+      lastPoint = []
+      for lastLine in self.lastLineList:
+         lastLine.sort()
+         lastPoint.append(lastLine[1][1])
+#       print(lastPoint)
+      for currentLine in vertical:
+         currentLine.sort()
+        #  print (currentLine[1][1])
+         if currentLine[1][1] not in lastPoint:
+        #     print (currentLine[1][1])
+            vertical.remove(currentLine)
+            for others in vertical:
+               currentLine.sort()
+               others.sort()
+               if (others[0][0] == currentLine[0][0] and ((currentLine[1][1]>others[0][1] and currentLine[0][1]<others[0][1])
+                  or (currentLine[1][1]<others[1][1] and currentLine[0][1]>others[0][1]) or (currentLine[1][1]>others[1][1] and
+                  currentLine[0][1]<others[0][1]))):
+                  self.overlapX = True
+                  break
+            if self.overlapX == True:
                break
+         else:
+            pass
       for h in horizontal:
          currentLine = h
          horizontal.remove(h)
          for others in horizontal:
             currentLine.sort()
             others.sort()
-            if others[0][1] == currentLine[0][1] and currentLine[1][0]>others[0][0]:
+            if (others[0][1] == currentLine[0][1] and ((currentLine[1][0]>others[0][0] and currentLine[0][0]<others[1][0])
+                or (currentLine[1][0]<others[1][0] and currentLine[0][0]>others[0][0]) or (currentLine[1][0]>others[1][0] and
+                currentLine[0][0]<others[0][0]))):
                self.overlapY = True
                break
       for pL in self.pointList:
@@ -151,6 +170,7 @@ def basic_shapes(name, cm=config.multiConstant):
 
    rect7.drawRect(dwg=dwg,texts=texts,shapes=shapes)
    rhombus1.relateCollect['left'].append((circle2, 'helloworld'))
+   rhombus1.relateCollect['right'].append((rect6, 'helloworld'))
    rect4.relateCollect['down'].append((rect6, 'helloworld'))
    circle1.relateCollect['down'].append((rect4, 'helloworld'))
 #    rect4.relateCollect['down'].extend([(circle2, 'helloworld')])
@@ -162,11 +182,20 @@ def basic_shapes(name, cm=config.multiConstant):
 
    lines1 = Lines(outObject=circle1)
    pointList=[]
-   pointList.extend(lines1.drawLines(dwg=dwg, wideBetweenGroups=circle1.groupWide(), shapes=shapesFilled, texts=texts, polyLines=polyLines))
-   pointList.extend(lines2.drawLines(dwg=dwg, wideBetweenGroups=Group.groupWide(rect4), shapes=shapesFilled, texts=texts, polyLines=polyLines))
-   pointList.extend(lines3.drawLines(dwg=dwg, wideBetweenGroups=Group.groupWide(rect3), shapes=shapesFilled, texts=texts, polyLines=polyLines))
-   pointList.extend(lines4.drawLines(dwg=dwg, wideBetweenGroups=Group.groupWide(rhombus1), shapes=shapesFilled, texts=texts, polyLines=polyLines))
-   lineEvl = lineEvaluation(pointList)
+   lastLineList = []
+   pointList.extend(lines1.drawLines(dwg=dwg, wideBetweenGroups=circle1.groupWide(), shapes=shapesFilled, texts=texts, polyLines=polyLines)['outputLineList'])
+   lastLineList.extend(lines1.drawLines(dwg=dwg, wideBetweenGroups=circle1.groupWide(), shapes=shapesFilled, texts=texts, polyLines=polyLines)['lastLineList'])
+   
+   pointList.extend(lines2.drawLines(dwg=dwg, wideBetweenGroups=Group.groupWide(rect4), shapes=shapesFilled, texts=texts, polyLines=polyLines)['outputLineList'])
+   lastLineList.extend(lines2.drawLines(dwg=dwg, wideBetweenGroups=Group.groupWide(rect4), shapes=shapesFilled, texts=texts, polyLines=polyLines)['lastLineList'])
+   
+   pointList.extend(lines3.drawLines(dwg=dwg, wideBetweenGroups=Group.groupWide(rect3), shapes=shapesFilled, texts=texts, polyLines=polyLines)['outputLineList'])
+   lastLineList.extend(lines3.drawLines(dwg=dwg, wideBetweenGroups=Group.groupWide(rect3), shapes=shapesFilled, texts=texts, polyLines=polyLines)['lastLineList'])
+
+   pointList.extend(lines4.drawLines(dwg=dwg, wideBetweenGroups=Group.groupWide(rhombus1), shapes=shapesFilled, texts=texts, polyLines=polyLines)['outputLineList'])
+   lastLineList.extend(lines2.drawLines(dwg=dwg, wideBetweenGroups=Group.groupWide(rect4), shapes=shapesFilled, texts=texts, polyLines=polyLines)['lastLineList'])
+#    print(lastLineList)
+   lineEvl = lineEvaluation(pointList=pointList,lastLineList=lastLineList)
    lineEvl.evaluateOverlap()
    print(lineEvl.overlapX)
    print(lineEvl.overlapY)
