@@ -4,13 +4,14 @@ import random
 
 
 
+
 def randrange_float(start, stop, step):
-    return random.randint(0, int((stop - start) / step)) * step + start
+   return random.randint(0, int((stop - start) / step)) * step + start
 
 
-def writeACommit(dwg, textLocation, text, texts, cm=config.multiConstant):
+def writeACommit(dwg, textLocation, text, texts, cm=config.multiConstant, fontSize=config.commitSize):
    '''the drawLines method in Lines class would exploit this function to write commits on the arrows.'''
-   text = dwg.text(text=text, insert=(textLocation[0]*cm, textLocation[1]*cm), style='font-size:{0}'.format((0.7/0.0352)*(cm/37.79)))
+   text = dwg.text(text=text, insert=(textLocation[0]*cm, textLocation[1]*cm), style='font-size:{0}'.format(fontSize*(cm/37.79)))
    texts.add(text)
    pass
 
@@ -22,8 +23,11 @@ class Lines():
       self.outObject = outObject # This is the shape object
       self.text=''
       self.textLocation = ()
+      self.outputLineList = []
+      self.lastLineList = []
 
-   def drawLines(self, dwg, wideBetweenGroups, shapes, texts, polyLines, cm=config.multiConstant):
+   def drawLines(self, dwg, wideBetweenGroups, shapes, texts, polyLines, cm=config.multiConstant, lineInterval=config.lineinterval,
+                 elementInterval=config.elementInterval, groupInterval=config.groupInterval, shapeSize=config.shapeSize):
       '''With a Lines itself, while providing a svgwrite.Drawing object, a objectlist from Group class, a 
          svgwrite's texts object (represent a text group in the svg file) and a svgwrite's shape objects 
          (represent a shape group in the svg file) and a wideBetweenGroups variable from shapeObject.groupWide(), 
@@ -38,15 +42,8 @@ class Lines():
             pD = pDt[0]
             if (self.outObject.groupNumber == pD.groupNumber) and (pD.elementOrder == (self.outObject.elementOrder+1)):
                if (self.outObject.outPointD[0])<=(pD.inPoint[0]):
-
-                  # vline.add(dwg.line(start=(self.outObject.outPointD[0]*cm, self.outObject.outPointD[1]*cm), 
-                  #                    end=(self.outObject.inPoint[0]*cm, pD.inPoint[1]*cm)))
                   lineList=[(self.outObject.outPointD, (self.outObject.inPoint[0], pD.inPoint[1]))]
                   endPoint=(self.outObject.inPoint[0], pD.inPoint[1])
-
-               else:
-                  # vline.add(dwg.line(start=(pD.outPointD[0]*cm,self.outObject.outPointD[1]*cm), 
-                  #                    end=(pD.inPoint[0]*cm, pD.inPoint[1]*cm)))
                   lineList=[((pD.outPointD[0], self.outObject.outPointD[1]), pD.inPoint)]
                   endPoint = (pD.inPoint[0], pD.inPoint[1])
                   
@@ -60,18 +57,19 @@ class Lines():
                lastLineList.append([lineList[0], lineList[1]])
                outputLineList.extend(lineList)
             elif (self.outObject.groupNumber <= pD.groupNumber):# This is right path
+               print ('right')
                if (self.outObject.groupNumber == pD.groupNumber):
-                  out2RandomH=randrange_float(wideBetweenGroups[self.outObject.groupNumber][0]+0.3, 
-                                              wideBetweenGroups[self.outObject.groupNumber][1]-0.3, 
-                                              0.2)
+                  out2RandomH=randrange_float(wideBetweenGroups[self.outObject.groupNumber][0]+0.3*(groupInterval/5), 
+                                              wideBetweenGroups[self.outObject.groupNumber][1]-0.3*(groupInterval/5), 
+                                              lineInterval)
                else:
-                  out2RandomH=randrange_float(wideBetweenGroups[(pD.groupNumber-1)][0]+0.3, 
-                                              wideBetweenGroups[(pD.groupNumber-1)][1]-0.3,
-                                              0.2)
-               out1RandomV=randrange_float(self.outObject.outPointD[1]+0.2, self.outObject.outPointD[1]+1, 0.2)
-   
-  
-               out3RandomV=randrange_float(pD.inPoint[1]-1.8, pD.inPoint[1]-0.8, 0.2)
+                  out2RandomH=randrange_float(wideBetweenGroups[(pD.groupNumber-1)][0]+0.3*(groupInterval/5), 
+                                              wideBetweenGroups[(pD.groupNumber-1)][1]-0.3*(groupInterval/5),
+                                              lineInterval)
+               out1RandomV=randrange_float(self.outObject.outPointD[1]+0.2*(elementInterval/5), 
+                                           self.outObject.outPointD[1]+1*(elementInterval/5), lineInterval)
+
+               out3RandomV=randrange_float(pD.inPoint[1]-1.8*(elementInterval/5), pD.inPoint[1]-0.4*(elementInterval/5), lineInterval)
                linesList = [[(self.outObject.outPointD[0], self.outObject.outPointD[1]), 
                             (self.outObject.outPointD[0], out1RandomV)],
 
@@ -99,10 +97,14 @@ class Lines():
                   self.textLocation=()
             elif self.outObject.groupNumber > pD.groupNumber:  #This is left path
                print ('left path')
-               out2RandomH=randrange_float(wideBetweenGroups[(self.outObject.groupNumber-1)][0], wideBetweenGroups[(self.outObject.groupNumber-1)][1], 0.2)
-               out1RandomV=randrange_float(self.outObject.outPointD[1], self.outObject.outPointD[1]+1, 0.2)
+               out2RandomH=randrange_float(wideBetweenGroups[(self.outObject.groupNumber-1)][0]+0.3*(groupInterval/5), 
+                                           wideBetweenGroups[(self.outObject.groupNumber-1)][1]-0.3*(groupInterval/5), 
+                                           lineInterval)
+               out1RandomV=randrange_float(self.outObject.outPointD[1]+0.2*(elementInterval/5), 
+                                           self.outObject.outPointD[1]+1*(elementInterval/5), 
+                                           lineInterval)
               #  out2RandomH=random.uniform(wideBetweenGroups[(pD['begin'].groupNumber-1)][0]+0.5, wideBetweenGroups[(pD['begin'].groupNumber-1)][1]-0.5)     
-               out3RandomV=randrange_float(pD.inPoint[1]-1.8, pD.inPoint[1]-0.8, 0.2)
+               out3RandomV=randrange_float(pD.inPoint[1]-1.8*(elementInterval/5), pD.inPoint[1]-0.4*(elementInterval/5), lineInterval)
                linesList = [[(self.outObject.outPointD[0], self.outObject.outPointD[1]), 
                             (self.outObject.outPointD[0], out1RandomV)],
 
@@ -129,8 +131,8 @@ class Lines():
                   self.text=''
                   self.textLocation = ()
             arrowList = [(pD.inPoint[0]*cm, pD.inPoint[1]*cm),
-                         (((endPoint[0]*cm+0.2*cm), ((endPoint[1]*cm-0.2*cm)))),
-                         (((endPoint[0]*cm-0.2*cm)), ((endPoint[1]*cm-0.2*cm))),
+                         (((endPoint[0]*cm+0.2*cm*shapeSize), ((endPoint[1]*cm-0.2*cm*shapeSize)))),
+                         ((endPoint[0]*cm-0.2*cm*shapeSize), ((endPoint[1]*cm-0.2*cm*shapeSize))),
                          (pD.inPoint[0]*cm, pD.inPoint[1]*cm)]
             arrow=dwg.polygon(points=arrowList, stroke='black', stroke_width=1)
             shapes.add(arrow)
@@ -138,10 +140,10 @@ class Lines():
          for pDt in self.outObject.relateCollect['left']:
 
             pD = pDt[0]
-            out3RandomV=pD.inPoint[1]-0.7
-            out2RandomH=randrange_float(wideBetweenGroups[(self.outObject.groupNumber-1)][0]+0.3, 
-                                        wideBetweenGroups[(self.outObject.groupNumber-1)][1]-0.7, 
-                                        0.2)
+            out3RandomV=pD.inPoint[1]-0.7*(elementInterval/5)
+            out2RandomH=randrange_float(wideBetweenGroups[(self.outObject.groupNumber-1)][0]+0.3*(groupInterval/5), 
+                                        wideBetweenGroups[(self.outObject.groupNumber-1)][1]-0.7*(groupInterval/5), 
+                                        lineInterval)
             lineList=[[(self.outObject.outPointL[0], self.outObject.outPointL[1]),
                        (out2RandomH, self.outObject.outPointL[1])],
 
@@ -172,10 +174,10 @@ class Lines():
       if self.outObject.relateCollect.get('right'):
          for pDt in self.outObject.relateCollect['right']:
             pD = pDt[0]
-            out3RandomV=pD.inPoint[1]-0.7
-            out2RandomH=randrange_float(wideBetweenGroups[(self.outObject.groupNumber)][0]+0.7, 
-                                        wideBetweenGroups[(self.outObject.groupNumber)][1]-0.3, 
-                                        0.2)
+            out3RandomV=pD.inPoint[1]-0.70*(elementInterval/5)
+            out2RandomH=randrange_float(wideBetweenGroups[(self.outObject.groupNumber)][0]+0.7*(groupInterval/5), 
+                                        wideBetweenGroups[(self.outObject.groupNumber)][1]-0.3*(groupInterval/5), 
+                                        lineInterval)
             lineList=[[(self.outObject.outPointR[0], self.outObject.outPointR[1]),
                        (out2RandomH, self.outObject.outPointR[1])],
 
@@ -203,6 +205,129 @@ class Lines():
                          (pD.inPoint[0]*cm, pD.inPoint[1]*cm)]
             arrow=dwg.polygon(points=arrowList, stroke='black', stroke_width=1)
             shapes.add(arrow)   
-      return {'outputLineList': outputLineList, 'lastLineList': lastLineList}  #Line result
+      self.outputLineList = outputLineList
+      self.lastLineList =lastLineList
+      return  #Line result
 
 
+def drawVerticalLine(pointList, dwg, vlines, cm=config.multiConstant):
+   for pL in pointList:
+      vlines.add(dwg.line(start=(pL[0][0]*cm, pL[0][1]*cm), 
+                          end=(pL[1][0]*cm, pL[1][1]*cm)))
+
+def drawHorizontalLines(pointList, dwg, hlines, cm=config.multiConstant):
+   for pL in pointList:
+      hlines.add(dwg.line(start=(pL[0][0]*cm, pL[0][1]*cm), 
+                          end=(pL[1][0]*cm, pL[1][1]*cm)))  
+
+def drawOverlapLines(overlapPoint, dwg, hlines, vlines, cm=config.multiConstant, lineInterval=config.lineinterval):
+#    print(overlapPoint)
+   lC = lineInterval/0.2
+   vlines.add(dwg.line(start=((overlapPoint[0]-0.1*lC)*cm, overlapPoint[1]*cm), 
+                          end=((overlapPoint[0]-0.1*lC)*cm, (overlapPoint[1]-0.1*lC)*cm)))
+   hlines.add(dwg.line(start=((overlapPoint[0]-0.1*lC)*cm, (overlapPoint[1]-0.1*lC)*cm),
+                          end=((overlapPoint[0]+0.1*lC)*cm, (overlapPoint[1]-0.1*lC)*cm)))
+   vlines.add(dwg.line(start=((overlapPoint[0]+0.1*lC)*cm, (overlapPoint[1]-0.1*lC)*cm), 
+                          end=((overlapPoint[0]+0.1*lC)*cm, (overlapPoint[1])*cm)))                          
+
+class lineEvaluation():
+   def __init__(self, pointList, lastLineList):
+      self.pointList=pointList
+      self.lastLineList = lastLineList
+      self.overlapList =[]
+      self.overlapPoint = []
+      self.vertical = []
+      self.horizontal = []
+      self.overlapX = False
+      self.overlapY = False
+
+   def evaluateOverlap(self, lineinterval=config.lineinterval):
+      lC = lineinterval/0.2
+#       print (self.lastLineList)
+      self.lastLineList.sort()
+#       print (self.lastLineList)
+      vertical = []
+      horizontal = []
+      overlapList = [] # overlapList = [[(p1),(p2)], [(p3), (p4)].....]
+      overpalLineList=[]
+      for pL in self.pointList:
+         pL.sort()
+         if pL[0][0] == pL[1][0]:
+            vertical.append(pL)
+         else:
+            horizontal.append(pL)
+      for h in horizontal:
+         h.sort()
+         mayOverlapPointList = []
+         for v in vertical:
+            v.sort()
+            if (h[0][1]<v[1][1]) and (h[0][1]>v[0][1]) and (h[0][0]<v[0][0]) and (h[1][0]>v[0][0]):
+               mayOverlapPointList.append((v[0][0],h[0][1]))  # [(p1), (p2),(p3).....]
+         if mayOverlapPointList:
+        #     print (mayOverlapPointList)
+            self.overlapPoint.extend(mayOverlapPointList)
+            segmentList = mayOverlapPointList
+            segmentList.extend(h)
+            segmentList.sort()
+            for segment in segmentList:
+        #        print (segment)
+               if segmentList.index(segment) == 0:
+                  nextSegmentIndex = 1
+                  self.horizontal.append([(segment[0], segment[1]), 
+                                          (segmentList[nextSegmentIndex][0]-0.1*lC, segmentList[nextSegmentIndex][1])])
+               elif segmentList.index(segment) < (len(segmentList)-2):
+                  nextSegmentIndex = segmentList.index(segment) +1
+                  self.horizontal.append([(segment[0]+0.1*lC, segment[1]), 
+                                          (segmentList[nextSegmentIndex][0]-0.1*lC, segmentList[nextSegmentIndex][1])])
+               elif segmentList.index(segment) == (len(segmentList)-2):
+
+                  nextSegmentIndex = segmentList.index(segment) +1
+
+                  self.horizontal.append([(segment[0]+0.1*lC, segment[1]), 
+                                           (segmentList[nextSegmentIndex][0], segmentList[nextSegmentIndex][1])])
+               else:
+                  pass
+            overpalLineList.append(h)
+      lastPoint = []
+      for lastLine in self.lastLineList:
+         lastLine.sort()
+         lastPoint.append(lastLine[1][1])
+#       print(lastPoint)
+      for currentLine in vertical:
+         currentLine.sort()
+        #  print (currentLine[1][1])
+         if currentLine[1][1] not in lastPoint:
+        #     print (currentLine[1][1])
+            for others in vertical:
+               currentLine.sort()
+               others.sort()
+               if currentLine==others:
+                  continue
+               if ((abs(others[0][0]-currentLine[0][0])<0.1) and ((currentLine[1][1]>=others[0][1] and currentLine[0][1]<=others[0][1])
+                  or (currentLine[1][1]<=others[1][1] and currentLine[1][1]>others[0][1]) or (currentLine[1][1]>=others[1][1] and
+                  currentLine[0][1]<=others[0][1]) or(currentLine[1][1]<=others[1][1] and currentLine[1][1]>=others[0][1]) 
+                  or(currentLine[1][1]>=others[1][1] and currentLine[0][1]<=others[0][1]) or() )):
+                  self.overlapX = True
+                  break
+            if self.overlapX == True:
+               break
+         else:
+            pass
+      for h in horizontal:
+         currentLine = h
+         for others in horizontal:
+            currentLine.sort()
+            others.sort()
+            if currentLine==others:
+               continue
+            if ((abs(others[0][1]-currentLine[0][1])<0.1) and ((currentLine[1][0]>=others[1][0] and currentLine[0][0]<=others[0][0]) or 
+                (currentLine[1][0]>=others[0][0] and currentLine[0][0]<=others[1][0]) or 
+                (currentLine[0][0]==others[0][0] or currentLine[1][0]==others[1][0]) or (currentLine[1][0]<=others[1][0] and 
+                currentLine[0][0]>=others[0][0]) or (currentLine[1][0]>=others[1][0] and currentLine[0][0]<=others[0][0]))):
+               self.overlapY = True
+               break
+      for pL in self.pointList:
+         if pL[0][0] == pL[1][0]:
+            self.vertical.append(pL)
+         elif pL[0][1] == pL[1][1] and (pL not in overpalLineList):
+            self.horizontal.append(pL)

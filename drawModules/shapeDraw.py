@@ -15,14 +15,15 @@ class Group():
       Group.objectList.append(self)
 
 
-   def groupWide(self):
+   def groupWide(self, groupInterval=config.groupInterval):
       '''This method would exploit objectList to analyze the wide between groups and generate a dict
          variable to represent the result. To use this method, please use childObject.groupWide()'''
+      g=groupInterval/5
       groupList = []
       for obj in Group.objectList:
          groupList.append(obj.groupNumber)
       groupList = list(set(groupList))
-      self.wideBetweenGroups.update({0:(0,2)})
+      self.wideBetweenGroups.update({0:(0,2*g)})
       for gL in groupList:
          maxWide = 0
          for obj in Group.objectList:
@@ -31,8 +32,8 @@ class Group():
                maxWide = obj.shapeLocation[0]+obj.shapeSize[0]
             # except:
             #    pass
-         self.wideBetweenGroups.update({gL:(maxWide,maxWide+4)})
-
+         self.wideBetweenGroups.update({gL:(maxWide,maxWide+4*g)})
+    #   print (self.wideBetweenGroups)
       return self.wideBetweenGroups
 
 class Circle(Group):
@@ -60,7 +61,9 @@ class Circle(Group):
       self.relateCollect = {'down': [], 'left': [], 'right': []}  # This dict contains all the target 
       # shape objects and the commint on the arrows  from a specifide circle object 
 
-   def drawCircle(self, dwg, texts, shapes, objectList=Group.objectList, cm=config.multiConstant):
+   def drawCircle(self, dwg, texts, shapes, objectList=Group.objectList, cm=config.multiConstant, fontSize=config.fontSize, 
+                  elementInterval=config.elementInterval, groupInterval=config.groupInterval, shapeSize=config.shapeSize, 
+                  circalAdjustment=config.circleAdjustment):
       '''While exploit this method, the program would draw a circle in the svg file. With the circle object
          itself, it also needs a svgwrite.Drawing object, a objectlist from Group class, a svgwrite's texts
          object (represent a text group in the svg file) and a svgwrite's shape objects (represent a shape 
@@ -70,7 +73,7 @@ class Circle(Group):
       objectList.sort(key=lambda x: x.groupNumber)
       index = objectList.index(self)
       if (objectList[index-1].groupNumber == self.groupNumber):
-         self.textLocation = (objectList[index-1].textLocation[0], self.elementOrder*5)
+         self.textLocation = (objectList[index-1].textLocation[0], self.elementOrder*elementInterval)
       elif objectList[index-1].groupNumber != self.groupNumber:
          longestText = []
          for obj in objectList:
@@ -78,14 +81,14 @@ class Circle(Group):
               longestText.append((obj.shapeLocation[0]+obj.shapeSize[0]))
          longestText.sort()
          newTextlocationX = longestText[-1]*(self.groupNumber - objectList[index-1].groupNumber)
-         self.textLocation = ((newTextlocationX+ 5), self.elementOrder*5) 
-      text = dwg.text(text=self.text, insert=(self.textLocation[0]*cm,self.textLocation[1]*cm), style='font-size:{0}'.format((0.7/0.0352)*(cm/37.79)))
+         self.textLocation = ((newTextlocationX+ groupInterval), self.elementOrder*elementInterval) 
+      text = dwg.text(text=self.text, insert=(self.textLocation[0]*cm,self.textLocation[1]*cm), style='font-size:{0}'.format(fontSize*(cm/37.79)))
       texts.add(text)
 
-      self.shapeLocation = (self.textLocation[0]-0.55, self.textLocation[1])
+      self.shapeLocation = (self.textLocation[0]-circalAdjustment, self.textLocation[1])
       self.shapeSize=(wordsNum*0.3, 0.3)
       center=(self.shapeLocation[0]+self.shapeSize[0]/2, self.shapeLocation[1])
-      r=self.shapeSize[0]/2
+      r=self.shapeSize[0]/2.5*shapeSize
       circle=dwg.circle(center=(center[0]*cm, center[1]*cm), r=r*cm, stroke='blue', stroke_width=3*(cm/37.79))
       self.inPoint=(center[0], center[1]-r)
       self.outPointD=(center[0], center[1]+r)
@@ -119,7 +122,8 @@ class Rhombus(Group):
       self.relateCollect = {'down': [], 'left': [], 'right': []}  # This dict contains all the target 
       # shape objects and the commint on the arrows  from a specifide rhombus object 
    
-   def drawRhom(self, dwg, texts, shapes, objectList=Group.objectList, cm=config.multiConstant):
+   def drawRhom(self, dwg, texts, shapes, objectList=Group.objectList, cm=config.multiConstant, fontSize=config.fontSize, 
+                elementInterval=config.elementInterval, groupInterval=config.groupInterval, shapeSize=config.shapeSize):
       '''While exploit this method, the program would draw a rhombus in the svg file. With the rhombus object
          itself, it also needs a svgwrite.Drawing object, a objectlist from Group class, a svgwrite's texts
          object (represent a text group in the svg file) and a svgwrite's shape objects (represent a shape 
@@ -129,9 +133,9 @@ class Rhombus(Group):
       objectList.sort(key=lambda x: x.groupNumber)
       index = objectList.index(self)
       if index == 0:
-         self.textLocation = (self.groupNumber*3, self.elementOrder*5)   # Seems could be used to sed a size style 
+         self.textLocation = (self.groupNumber*elementInterval, self.elementOrder*elementInterval)   # Seems could be used to sed a size style 
       elif (objectList[index-1].groupNumber == self.groupNumber):
-         self.textLocation = (objectList[index-1].textLocation[0], self.elementOrder*5)
+         self.textLocation = (objectList[index-1].textLocation[0], self.elementOrder*elementInterval)
       elif objectList[index-1].groupNumber != self.groupNumber:
          longestText = []
          for obj in objectList:
@@ -139,12 +143,12 @@ class Rhombus(Group):
               longestText.append((obj.shapeLocation[0]+obj.shapeSize[0]))
          longestText.sort()
          newTextlocationX = longestText[-1]*(self.groupNumber - objectList[index-1].groupNumber)
-         self.textLocation = ((newTextlocationX+ 5), self.elementOrder*5)
-      text = dwg.text(text=self.text, insert=(self.textLocation[0]*cm,self.textLocation[1]*cm), style='font-size:{0}'.format((0.7/0.0352)*(cm/37.79)))
+         self.textLocation = ((newTextlocationX+ groupInterval), self.elementOrder*elementInterval)
+      text = dwg.text(text=self.text, insert=(self.textLocation[0]*cm,self.textLocation[1]*cm), style='font-size:{0}'.format(fontSize*(cm/37.79)))
       texts.add(text)
       # text = dwg.text(text=self.text, insert=(self.textLocation[0]*cm,self.textLocation[1]*cm), style='font-size:{0}'.format(0.7/0.0352*(cm/37.79)))
-      self.shapeLocation = (self.textLocation[0]-1, self.textLocation[1]-0.2)
-      self.shapeSize=(wordsNum*0.42, 1.2)
+      self.shapeLocation = (self.textLocation[0]-1*shapeSize, self.textLocation[1]-0.2*shapeSize)
+      self.shapeSize=(wordsNum*0.42*shapeSize, 1.2*shapeSize)
       rhomList=[(self.shapeLocation[0]*cm, self.shapeLocation[1]*cm),
                 ((self.shapeLocation[0]+self.shapeSize[0]/2)*cm, (self.shapeLocation[1]-self.shapeSize[1])*cm),
                 ((self.shapeLocation[0]+self.shapeSize[0])*cm, self.shapeLocation[1]*cm),
@@ -186,7 +190,9 @@ class Rectangal(Group):
       # shape objects and the commint on the arrows  from a specifide rectangal object 
       self.foundation = fundation # If true, the object would be transparent.
    
-   def drawRect(self, dwg, texts, shapes, objectList=Group.objectList, cm=config.multiConstant):
+   def drawRect(self, dwg, texts, shapes, objectList=Group.objectList, 
+                cm=config.multiConstant, fontSize=config.fontSize, shapeSize=config.shapeSize,
+                elementInterval=config.elementInterval, groupInterval=config.groupInterval):
       '''While exploit this method, the program would draw a rectangal in the svg file. With the rectangal object
          itself, it also needs a svgwrite.Drawing object, a objectlist from Group class, a svgwrite's texts
          object (represent a text group in the svg file) and a svgwrite's shape objects (represent a shape 
@@ -196,9 +202,9 @@ class Rectangal(Group):
       objectList.sort(key=lambda x: x.groupNumber)
       index = objectList.index(self)
       if index == 0:
-         self.textLocation = (self.groupNumber*3, self.elementOrder*5)   # Seems could be used to set a size style 
+         self.textLocation = (self.groupNumber*groupInterval, self.elementOrder*elementInterval)   # Seems could be used to set a size style 
       elif (objectList[index-1].groupNumber == self.groupNumber):
-         self.textLocation = (objectList[index-1].textLocation[0], self.elementOrder*5)
+         self.textLocation = (objectList[index-1].textLocation[0], self.elementOrder*elementInterval)
       elif objectList[index-1].groupNumber != self.groupNumber:
          longestText = []
          for obj in objectList:
@@ -206,18 +212,18 @@ class Rectangal(Group):
               longestText.append((obj.shapeLocation[0]+obj.shapeSize[0]))
          longestText.sort()
          newTextlocationX = longestText[-1]*(self.groupNumber - objectList[index-1].groupNumber)
-         self.textLocation = ((newTextlocationX+ 5), self.elementOrder*5)
+         self.textLocation = ((newTextlocationX+groupInterval), self.elementOrder*elementInterval)
       if self.foundation == False:
-         text = dwg.text(text=self.text, insert=(self.textLocation[0]*cm,self.textLocation[1]*cm), style='font-size:{0}'.format((0.7/0.0352)*(cm/37.79)))
+         text = dwg.text(text=self.text, insert=(self.textLocation[0]*cm,self.textLocation[1]*cm), style='font-size:{0}'.format(fontSize*(cm/37.79)))
          stroke_width=3*(cm/37.79)
          texts.add(text)
       else:
          stroke_width=0
       
-      self.shapeLocation = (self.textLocation[0]-1, self.textLocation[1]-1)
-      self.shapeSize=(wordsNum*0.42, 2)
+      self.shapeLocation = (self.textLocation[0]-1*shapeSize, self.textLocation[1]-1*shapeSize)
+      self.shapeSize=(wordsNum*0.42*shapeSize, 2*shapeSize)
       rect = dwg.rect(insert=(self.shapeLocation[0]*cm,self.shapeLocation[1]*cm), 
-                      size=(self.shapeSize[0]*cm, self.shapeSize[1]*cm), rx=10, ry=10, 
+                      size=(self.shapeSize[0]*cm, self.shapeSize[1]*cm), rx=10*shapeSize, ry=10*shapeSize, 
                       stroke='blue', stroke_width=stroke_width)
       self.inPoint=((self.shapeLocation[0]+self.shapeSize[0]/2), (self.shapeLocation[1]))
       self.outPointD=((self.shapeLocation[0]+self.shapeSize[0]/2), (self.shapeLocation[1]+self.shapeSize[1]))
