@@ -81,13 +81,12 @@ class Circle(Group):
          self.textLocation = ((newTextlocationX+ 5), self.elementOrder*5) 
       text = dwg.text(text=self.text, insert=(self.textLocation[0]*cm,self.textLocation[1]*cm), style='font-size:{0}'.format((0.7/0.0352)*(cm/37.79)))
       texts.add(text)
-      # text = dwg.text(text=self.text, insert=(self.textLocation[0]*cm,self.textLocation[1]*cm), style='font-size:{0}'.format(0.7/0.0352*(cm/37.79)))
-      # print (self.textLocation)    
+
       self.shapeLocation = (self.textLocation[0]-0.55, self.textLocation[1])
       self.shapeSize=(wordsNum*0.3, 0.3)
       center=(self.shapeLocation[0]+self.shapeSize[0]/2, self.shapeLocation[1])
       r=self.shapeSize[0]/2
-      circle=dwg.circle(center=(center[0]*cm, center[1]*cm), r=r*cm, stroke='blue', stroke_width=3)
+      circle=dwg.circle(center=(center[0]*cm, center[1]*cm), r=r*cm, stroke='blue', stroke_width=3*(cm/37.79))
       self.inPoint=(center[0], center[1]-r)
       self.outPointD=(center[0], center[1]+r)
       shapes.add(circle)
@@ -152,7 +151,7 @@ class Rhombus(Group):
                 ((self.shapeLocation[0]+self.shapeSize[0]/2)*cm, (self.shapeLocation[1]+self.shapeSize[1])*cm),
                 (self.shapeLocation[0]*cm, self.shapeLocation[1]*cm)]
 
-      rhom=dwg.polygon(points=rhomList, stroke='blue', stroke_width=3)
+      rhom=dwg.polygon(points=rhomList, stroke='blue', stroke_width=3*(cm/37.79))
       self.inPoint=(self.shapeLocation[0]+self.shapeSize[0]/2, self.shapeLocation[1]-self.shapeSize[1])
       self.outPointR=(self.shapeLocation[0]+self.shapeSize[0], self.shapeLocation[1])
       self.outPointL=self.shapeLocation   
@@ -210,7 +209,7 @@ class Rectangal(Group):
          self.textLocation = ((newTextlocationX+ 5), self.elementOrder*5)
       if self.foundation == False:
          text = dwg.text(text=self.text, insert=(self.textLocation[0]*cm,self.textLocation[1]*cm), style='font-size:{0}'.format((0.7/0.0352)*(cm/37.79)))
-         stroke_width=3
+         stroke_width=3*(cm/37.79)
          texts.add(text)
       else:
          stroke_width=0
