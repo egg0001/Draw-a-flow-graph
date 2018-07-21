@@ -241,7 +241,6 @@ class lineEvaluation():
       lC = lineinterval/0.2
 #       print (self.lastLineList)
       self.lastLineList.sort()
-      print (self.lastLineList)
       vertical = []
       horizontal = []
       overlapList = [] # overlapList = [[(p1),(p2)], [(p3), (p4)].....]
@@ -285,6 +284,7 @@ class lineEvaluation():
                else:
                   pass
             overpalLineList.append(h)
+
       lastPoint = []
       for lastLine in self.lastLineList:
          lastLine.sort()
@@ -305,31 +305,31 @@ class lineEvaluation():
                   currentLine[0][1]<=others[0][1]) or(currentLine[1][1]<=others[1][1] and currentLine[1][1]>=others[0][1]) 
                   or(currentLine[1][1]>=others[1][1] and currentLine[0][1]<=others[0][1]) or() )):
                   self.overlapX = True
-                  print(currentLine)
-                  print (others)
                   break
             if self.overlapX == True:
                break
          else:
             pass
-      for h in horizontal:
-         currentLine = h
+      for currentLine in horizontal:
          for others in horizontal:
             currentLine.sort()
             others.sort()
             if currentLine==others:
                continue
-            if ((abs(others[0][1]-currentLine[0][1])<0.1) and ((currentLine[1][0]>=others[1][0] and currentLine[0][0]<=others[0][0]) or 
+            if ((abs(others[0][1]-currentLine[0][1])<0.1*lC) and ((currentLine[1][0]>=others[1][0] and currentLine[0][0]<=others[0][0]) or 
                 (currentLine[1][0]>=others[0][0] and currentLine[0][0]<=others[1][0]) or 
                 (currentLine[0][0]==others[0][0] or currentLine[1][0]==others[1][0]) or (currentLine[1][0]<=others[1][0] and 
                 currentLine[0][0]>=others[0][0]) or (currentLine[1][0]>=others[1][0] and currentLine[0][0]<=others[0][0]))):
                self.overlapY = True
                break
       for pL in self.pointList:
+         pL=list(pL)
+         pL.sort()
          if pL[0][0] == pL[1][0]:
             self.vertical.append(pL)
          elif pL[0][1] == pL[1][1] and (pL not in overpalLineList):
             self.horizontal.append(pL)
+
 
    def reallyDrawLine(self, dwg, vlines, hlines, cm=config.multiConstant, lineInterval=config.lineinterval):
       '''If overlapX and overlapY attributes are both False after analysis, this method, with a Drawing object, vline
