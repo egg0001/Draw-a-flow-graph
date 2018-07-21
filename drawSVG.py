@@ -2,7 +2,7 @@
 
 import svgwrite
 from drawModules.shapeDraw import Group, Circle, Rectangal, Rhombus
-from drawModules.lineDraw import Lines, lineEvaluation, drawVerticalLine, drawHorizontalLines, drawOverlapLines
+from drawModules.lineDraw import Lines, lineEvaluation
 from drawModules import config
 import random
 
@@ -86,19 +86,19 @@ def basic_shapes(name, cm=config.multiConstant):
       lines6 = Lines(outObject=rect7)
       lines3 = Lines(outObject=rect3)
       lines1 = Lines(outObject=circle1)
-      lines1.drawLines(dwg=dwg, wideBetweenGroups=circle1.groupWide(), shapes=shapesFilled, texts=texts, polyLines=polyLines)
+      lines1.createLinePoints(dwg=dwg, wideBetweenGroups=circle1.groupWide(), shapes=shapesFilled, texts=texts, polyLines=polyLines)
       pointList.extend(lines1.outputLineList)
       lastLineList.extend(lines1.lastLineList)
-      lines2.drawLines(dwg=dwg, wideBetweenGroups=Group.groupWide(rect4), shapes=shapesFilled, texts=texts, polyLines=polyLines)
+      lines2.createLinePoints(dwg=dwg, wideBetweenGroups=Group.groupWide(rect4), shapes=shapesFilled, texts=texts, polyLines=polyLines)
       pointList.extend(lines2.outputLineList)
       lastLineList.extend(lines2.lastLineList)
-      lines3.drawLines(dwg=dwg, wideBetweenGroups=Group.groupWide(rect3), shapes=shapesFilled, texts=texts, polyLines=polyLines)
+      lines3.createLinePoints(dwg=dwg, wideBetweenGroups=Group.groupWide(rect3), shapes=shapesFilled, texts=texts, polyLines=polyLines)
       pointList.extend(lines3.outputLineList)
-      lastLineList.extend(lines3.lastLineList)
-      lines6.drawLines(dwg=dwg, wideBetweenGroups=Group.groupWide(rect7), shapes=shapesFilled, texts=texts, polyLines=polyLines)
+      lastLineList.extend(lines3.lastLineList) 
+      lines6.createLinePoints(dwg=dwg, wideBetweenGroups=Group.groupWide(rect7), shapes=shapesFilled, texts=texts, polyLines=polyLines)
       pointList.extend(lines6.outputLineList)
       lastLineList.extend(lines6.lastLineList)
-      lines4.drawLines(dwg=dwg, wideBetweenGroups=Group.groupWide(rhombus1), shapes=shapesFilled, texts=texts, polyLines=polyLines)
+      lines4.createLinePoints(dwg=dwg, wideBetweenGroups=Group.groupWide(rhombus1), shapes=shapesFilled, texts=texts, polyLines=polyLines)
       pointList.extend(lines4.outputLineList)
       lastLineList.extend(lines4.lastLineList)
       lineEvl = lineEvaluation(pointList=pointList,lastLineList=lastLineList)
@@ -108,12 +108,13 @@ def basic_shapes(name, cm=config.multiConstant):
       print (overlapX)
       print (overlapY)
       retryTimes +=1
-   drawVerticalLine(pointList=lineEvl.vertical, dwg=dwg, vlines=vlines,)
-   drawHorizontalLines(pointList=lineEvl.horizontal, dwg=dwg, hlines=hlines,)
-   
+     
+#    drawVerticalLine( dwg=dwg, vlines=vlines,)
+#    drawHorizontalLines(pointList=lineEvl.horizontal, dwg=dwg, hlines=hlines,)
+   lineEvl.reallyDrawLine(dwg=dwg,vlines=vlines,hlines=hlines)
 #    print (lineEvl.overlapPoint)
-   for points in lineEvl.overlapPoint:
-      drawOverlapLines(overlapPoint=points, dwg=dwg, hlines=hlines, vlines=vlines)
+#    for points in lineEvl.overlapPoint:
+#       drawOverlapLines(overlapPoint=points, dwg=dwg, hlines=hlines, vlines=vlines)
    dwg.save()
 
 

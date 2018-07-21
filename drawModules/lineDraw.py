@@ -3,22 +3,23 @@ from . import config
 import random
 
 
+random.seed(a=config.randomSeed)
+# To produce a analysisable result, providing a random seed is useful.
 
 
 def randrange_float(start, stop, step):
+   '''This function could generate a stepping float to the generation of segments.'''
    return random.randint(0, int((stop - start) / step)) * step + start
 
 
-def writeACommit(dwg, textLocation, text, texts, cm=config.multiConstant, fontSize=config.commitSize):
-   '''the drawLines method in Lines class would exploit this function to write commits on the arrows.'''
-   text = dwg.text(text=text, insert=(textLocation[0]*cm, textLocation[1]*cm), style='font-size:{0}'.format(fontSize*(cm/37.79)))
-   texts.add(text)
-   pass
+
+
 
 class Lines():
    '''This Lines class and its objects contain all the arrows(and its commint) from every shape object. While 
       using any of three shapes objects to construct a Lines objects and exploiting its drawLines method, it
-      would analyze the relateCollect attribute in the shape objects and exploit the result to drawlines.'''
+      would analyze the relateCollect attribute in the shape objects and exploit the result to create segments  
+      point list preparing to analysis. It also has a writeACommit method to arrange commits on the arrows.'''
    def __init__(self, outObject):
       self.outObject = outObject # This is the shape object
       self.text=''
@@ -26,12 +27,12 @@ class Lines():
       self.outputLineList = []
       self.lastLineList = []
 
-   def drawLines(self, dwg, wideBetweenGroups, shapes, texts, polyLines, cm=config.multiConstant, lineInterval=config.lineinterval,
+   def createLinePoints(self, dwg, wideBetweenGroups, shapes, texts, polyLines, cm=config.multiConstant, lineInterval=config.lineinterval,
                  elementInterval=config.elementInterval, groupInterval=config.groupInterval, shapeSize=config.shapeSize):
-      '''With a Lines itself, while providing a svgwrite.Drawing object, a objectlist from Group class, a 
-         svgwrite's texts object (represent a text group in the svg file) and a svgwrite's shape objects 
-         (represent a shape group in the svg file) and a wideBetweenGroups variable from shapeObject.groupWide(), 
-         it would draw all the arrow from the providing shape object.'''
+      '''With a Lines itself, while providing a svgwrite.Drawing object, a svgwrite's texts object (represent a text group in the svg file) 
+         and a svgwrite's shape objects (represent a shape group in the svg file) and a wideBetweenGroups variable from shapeObject.groupWide(), 
+         it would generate all the segments representing the lines of arrows preparing to further analysis, including the overlapping and line
+         crossing. while analysis, it would also create the head of the arrows.'''
       vline = dwg.add(dwg.g(id='routeV', stroke='black', ))
       hline = dwg.add(dwg.g(id='routeH', stroke='black'))
       arrow = dwg.add(dwg.g(id='arrow', stroke='black'))
@@ -57,7 +58,6 @@ class Lines():
                lastLineList.append([lineList[0], lineList[1]])
                outputLineList.extend(lineList)
             elif (self.outObject.groupNumber <= pD.groupNumber):# This is right path
-               print ('right')
                if (self.outObject.groupNumber == pD.groupNumber):
                   out2RandomH=randrange_float(wideBetweenGroups[self.outObject.groupNumber][0]+0.3*(groupInterval/5), 
                                               wideBetweenGroups[self.outObject.groupNumber][1]-0.3*(groupInterval/5), 
@@ -96,7 +96,6 @@ class Lines():
                   self.text=''
                   self.textLocation=()
             elif self.outObject.groupNumber > pD.groupNumber:  #This is left path
-               print ('left path')
                out2RandomH=randrange_float(wideBetweenGroups[(self.outObject.groupNumber-1)][0]+0.3*(groupInterval/5), 
                                            wideBetweenGroups[(self.outObject.groupNumber-1)][1]-0.3*(groupInterval/5), 
                                            lineInterval)
@@ -208,29 +207,19 @@ class Lines():
       self.outputLineList = outputLineList
       self.lastLineList =lastLineList
       return  #Line result
+   def writeACommit(self, dwg, texts, cm=config.multiConstant, fontSize=config.commitSize):
+      '''the drawLines method in Lines class would exploit this function to write commits on the arrows. It should only be used 
+         after the segment analysis completed.'''
+      text = dwg.text(text=self.text, insert=(self.textLocation[0]*cm, self.textLocation[1]*cm), style='font-size:{0}'.format(fontSize*(cm/37.79)))
+      texts.add(text)
 
 
-def drawVerticalLine(pointList, dwg, vlines, cm=config.multiConstant):
-   for pL in pointList:
-      vlines.add(dwg.line(start=(pL[0][0]*cm, pL[0][1]*cm), 
-                          end=(pL[1][0]*cm, pL[1][1]*cm)))
-
-def drawHorizontalLines(pointList, dwg, hlines, cm=config.multiConstant):
-   for pL in pointList:
-      hlines.add(dwg.line(start=(pL[0][0]*cm, pL[0][1]*cm), 
-                          end=(pL[1][0]*cm, pL[1][1]*cm)))  
-
-def drawOverlapLines(overlapPoint, dwg, hlines, vlines, cm=config.multiConstant, lineInterval=config.lineinterval):
-#    print(overlapPoint)
-   lC = lineInterval/0.2
-   vlines.add(dwg.line(start=((overlapPoint[0]-0.1*lC)*cm, overlapPoint[1]*cm), 
-                          end=((overlapPoint[0]-0.1*lC)*cm, (overlapPoint[1]-0.1*lC)*cm)))
-   hlines.add(dwg.line(start=((overlapPoint[0]-0.1*lC)*cm, (overlapPoint[1]-0.1*lC)*cm),
-                          end=((overlapPoint[0]+0.1*lC)*cm, (overlapPoint[1]-0.1*lC)*cm)))
-   vlines.add(dwg.line(start=((overlapPoint[0]+0.1*lC)*cm, (overlapPoint[1]-0.1*lC)*cm), 
-                          end=((overlapPoint[0]+0.1*lC)*cm, (overlapPoint[1])*cm)))                          
+                         
 
 class lineEvaluation():
+   '''While the segment list from all the Lines objects is provided to create a lineEvaluation object, this object's evaluateOverlap
+      method would analysis all the segments and find out whether these segments exist issues, including the overlapping and line 
+      crossing. If it does not detect any issue, the reallyDrawLine method would draw the segment on the svg object.'''
    def __init__(self, pointList, lastLineList):
       self.pointList=pointList
       self.lastLineList = lastLineList
@@ -242,6 +231,12 @@ class lineEvaluation():
       self.overlapY = False
 
    def evaluateOverlap(self, lineinterval=config.lineinterval):
+      '''This method would analysis most of the issues before drawing. After the analysis, this method would alter the bool values of
+         overlapX and overlapY attributes of the lineEvaluation to represent whether this segments encounter any overlapping issue. If
+         one of this attributes is True, the lines objects should be discard and re-create since the Line object would exploit random 
+         to create those new segments. Moreover, it would also add a overlapPoint attribute after analysis to deal with line corssing
+         issue
+      '''
       lC = lineinterval/0.2
 #       print (self.lastLineList)
       self.lastLineList.sort()
@@ -331,3 +326,24 @@ class lineEvaluation():
             self.vertical.append(pL)
          elif pL[0][1] == pL[1][1] and (pL not in overpalLineList):
             self.horizontal.append(pL)
+
+   def reallyDrawLine(self, dwg, vlines, hlines, cm=config.multiConstant, lineInterval=config.lineinterval):
+      '''If overlapX and overlapY attributes are both False after analysis, this method, with a Drawing object, vline
+         and hlines object for the groupping, would really draw all the segments on the svg object.'''
+      lC = lineInterval/0.2
+      for pL in self.vertical:
+         vlines.add(dwg.line(start=(pL[0][0]*cm, pL[0][1]*cm), 
+                             end=(pL[1][0]*cm, pL[1][1]*cm)))
+
+      for pL in self.horizontal:
+         hlines.add(dwg.line(start=(pL[0][0]*cm, pL[0][1]*cm), 
+                             end=(pL[1][0]*cm, pL[1][1]*cm)))  
+
+      
+      for points in self.overlapPoint:
+         vlines.add(dwg.line(start=((points[0]-0.1*lC)*cm, points[1]*cm), 
+                             end=((points[0]-0.1*lC)*cm, (points[1]-0.1*lC)*cm)))
+         hlines.add(dwg.line(start=((points[0]-0.1*lC)*cm, (points[1]-0.1*lC)*cm),
+                             end=((points[0]+0.1*lC)*cm, (points[1]-0.1*lC)*cm)))
+         vlines.add(dwg.line(start=((points[0]+0.1*lC)*cm, (points[1]-0.1*lC)*cm), 
+                             end=((points[0]+0.1*lC)*cm, (points[1])*cm))) 
