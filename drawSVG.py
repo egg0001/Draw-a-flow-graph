@@ -58,18 +58,12 @@ def basic_shapes(name, cm=config.multiConstant):
    rect7.relateCollect['down'].append((circle2, 'helloworld'))
    rhombus1.relateCollect['left'].append((circle2, 'helloworld'))
    rhombus1.relateCollect['right'].append((rect6, 'helloworld'))
+   rhombus1.relateCollect['down'].append((rect6, 'helloworld'))
    rect4.relateCollect['down'].append((rect6, 'helloworld'))
    circle1.relateCollect['down'].append((rect7, 'helloworld'))
 #    rect4.relateCollect['down'].extend([(circle2, 'helloworld')])
-#    rect3.relateCollect['down'].append((rect6, 'helloworld'))
-   rect3.relateCollect['down'].extend([(rhombus1, 'helloworld')])
-
-
-
-
-
-
-
+   rect3.relateCollect['down'].append((rect6, 'helloworld'))
+#    rect3.relateCollect['down'].extend([(rhombus1, 'helloworld')])
 
    pointList=[]
    lastLineList = []

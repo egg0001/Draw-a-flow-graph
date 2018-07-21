@@ -45,6 +45,7 @@ class Lines():
                if (self.outObject.outPointD[0])<=(pD.inPoint[0]):
                   lineList=[(self.outObject.outPointD, (self.outObject.inPoint[0], pD.inPoint[1]))]
                   endPoint=(self.outObject.inPoint[0], pD.inPoint[1])
+               else:
                   lineList=[((pD.outPointD[0], self.outObject.outPointD[1]), pD.inPoint)]
                   endPoint = (pD.inPoint[0], pD.inPoint[1])
                   
@@ -54,8 +55,8 @@ class Lines():
             #      writeACommit(dwg=dwg, textLocation=textLocation, texts=texts, text=pDt[1])
                except:
                   self.text=''
-                  self.textLocation=()                
-               lastLineList.append([lineList[0], lineList[1]])
+                  self.textLocation=()        
+               lastLineList.append([lineList[0][0], lineList[0][1]])
                outputLineList.extend(lineList)
             elif (self.outObject.groupNumber <= pD.groupNumber):# This is right path
                if (self.outObject.groupNumber == pD.groupNumber):
@@ -240,12 +241,13 @@ class lineEvaluation():
       lC = lineinterval/0.2
 #       print (self.lastLineList)
       self.lastLineList.sort()
-#       print (self.lastLineList)
+      print (self.lastLineList)
       vertical = []
       horizontal = []
       overlapList = [] # overlapList = [[(p1),(p2)], [(p3), (p4)].....]
       overpalLineList=[]
       for pL in self.pointList:
+         pL = list(pL)
          pL.sort()
          if pL[0][0] == pL[1][0]:
             vertical.append(pL)
@@ -303,6 +305,8 @@ class lineEvaluation():
                   currentLine[0][1]<=others[0][1]) or(currentLine[1][1]<=others[1][1] and currentLine[1][1]>=others[0][1]) 
                   or(currentLine[1][1]>=others[1][1] and currentLine[0][1]<=others[0][1]) or() )):
                   self.overlapX = True
+                  print(currentLine)
+                  print (others)
                   break
             if self.overlapX == True:
                break
